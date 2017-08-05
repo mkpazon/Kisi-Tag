@@ -24,7 +24,9 @@ import timber.log.Timber;
 
 import static android.nfc.NdefRecord.createMime;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NfcAdapter.CreateNdefMessageCallback {
+public class MainActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener,
+        NfcAdapter.CreateNdefMessageCallback {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         prefEditor.apply();
 
-        Toast.makeText(this, "Sent payload: " + payload, Toast.LENGTH_LONG).show();
         return new NdefMessage(
                 new NdefRecord[]{
                         createMime("application/vnd.com.example.android.beam", payload.getBytes())
