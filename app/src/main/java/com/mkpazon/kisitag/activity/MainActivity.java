@@ -13,25 +13,32 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mkpazon.kisitag.Constants;
 import com.mkpazon.kisitag.R;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import timber.log.Timber;
 
 import static android.nfc.NdefRecord.createMime;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
-        NfcAdapter.CreateNdefMessageCallback {
+        NfcAdapter.CreateNdefMessageCallback,
+        NfcAdapter.OnNdefPushCompleteCallback {
+
+    @BindView(R.id.textView_toSendNext)
+    TextView mTvToSendNext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -45,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements
         }
         // Register callback
         mNfcAdapter.setNdefPushMessageCallback(this, this);
+        mNfcAdapter.setOnNdefPushCompleteCallback(this, this);
+
+        resetPayloadText();
     }
 
     private void setupDrawer(Toolbar toolbar) {
@@ -69,21 +79,6 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -94,9 +89,20 @@ public class MainActivity extends AppCompatActivity implements
     public NdefMessage createNdefMessage(NfcEvent nfcEvent) {
         Timber.d(".createNdefMesasage");
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-
         String payload = preferences.getString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
 
+        return new NdefMessage(
+                new NdefRecord[]{
+                        createMime("application/vnd.com.example.android.beam", payload.getBytes())
+                });
+    }
+
+    @Override
+    public void onNdefPushComplete(NfcEvent nfcEvent) {
+        Timber.d(".onNdefPushComplete");
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String payload = preferences.getString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
         SharedPreferences.Editor prefEditor = preferences.edit();
         if (Constants.PAYLOAD_UNLOCK.equals(payload)) {
             prefEditor.putString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_NOTHING);
@@ -105,9 +111,13 @@ public class MainActivity extends AppCompatActivity implements
         }
         prefEditor.apply();
 
-        return new NdefMessage(
-                new NdefRecord[]{
-                        createMime("application/vnd.com.example.android.beam", payload.getBytes())
-                });
+        resetPayloadText();
+    }
+
+    private void resetPayloadText() {
+        Timber.d(".resetPayloadText");
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String payload = preferences.getString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
+        mTvToSendNext.setText(payload);
     }
 }
