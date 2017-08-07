@@ -18,14 +18,14 @@
         android:id="@+id/textView_toSendNext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:textColor="@color/colorAccent"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textStyle="italic"
-        android:text="@string/tap_to_switch" />
+        android:text="@string/tap_to_switch"
+        android:textStyle="italic" />
 
 </LinearLayout>

@@ -22,6 +22,7 @@ import com.mkpazon.kisitag.R;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import timber.log.Timber;
 
 import static android.nfc.NdefRecord.createMime;
@@ -103,6 +104,19 @@ public class MainActivity extends AppCompatActivity implements
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String payload = preferences.getString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
+        switchPayload();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                resetPayloadText();
+            }
+        });
+    }
+
+    private void switchPayload() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String payload = preferences.getString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
         SharedPreferences.Editor prefEditor = preferences.edit();
         if (Constants.PAYLOAD_UNLOCK.equals(payload)) {
             prefEditor.putString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_NOTHING);
@@ -110,14 +124,19 @@ public class MainActivity extends AppCompatActivity implements
             prefEditor.putString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
         }
         prefEditor.apply();
-
-        resetPayloadText();
     }
 
     private void resetPayloadText() {
         Timber.d(".resetPayloadText");
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String payload = preferences.getString(Constants.PREFERENCE_PAYLOAD, Constants.PAYLOAD_UNLOCK);
+        Timber.i("set text to " + payload);
         mTvToSendNext.setText(payload);
+    }
+
+    @OnClick(R.id.textView_toSendNext)
+    public void onClickPayload() {
+        switchPayload();
+        resetPayloadText();
     }
 }
